@@ -34,7 +34,14 @@ module Spree
           promotion_action_line_items.each do |promotion_action_line_item|
             existing_line_item = find_existing_line_item(promotion_action_line_item, order)
             if existing_line_item
-              existing_line_item.update_attribute(:quantity, promotion_action_line_item.quantity)
+              # DD: TEMPORARY
+              whey = order.line_items
+                .includes(:variant).references(:variant)
+                .where("spree_variants.sku = '102004'").first
+
+              quantity = whey.present? ? whey.quantity.to_i / 2 : promotion_action_line_item.quantity
+              # DD: END TEMPORARY
+              existing_line_item.update_attribute(:quantity, quantity)
             else
               create_line_item(promotion_action_line_item, order)
             end
@@ -77,7 +84,14 @@ module Spree
 
           def create_line_item(promotion_action_line_item, order)
             variant = promotion_action_line_item.variant
-            quantity = promotion_action_line_item.quantity
+            #quantity = promotion_action_line_item.quantity
+            # DD: TEMPORARY
+            whey = order.line_items
+              .includes(:variant).references(:variant)
+              .where("spree_variants.sku = '102004'").first
+
+            quantity = whey.present? ? whey.quantity.to_i / 2 : promotion_action_line_item.quantity
+            # DD: END TEMPORARY
 
             current_quantity = order.quantity_of(variant)
             if current_quantity < quantity

@@ -37,7 +37,7 @@ module Spree
               # DD: TEMPORARY
               whey = order.line_items
                 .includes(:variant).references(:variant)
-                .where("spree_variants.sku = '102004'").first
+                .where("spree_variants.sku = '103211'").first
 
               quantity = whey.present? ? whey.quantity.to_i / 2 : promotion_action_line_item.quantity
               # DD: END TEMPORARY

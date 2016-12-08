@@ -31,20 +31,34 @@ module Spree
 
         def perform_eligible_action(options={})
           return unless order = options[:order]
+          # DD: for each item to add
           promotion_action_line_items.each do |promotion_action_line_item|
-            existing_line_item = find_existing_line_item(promotion_action_line_item, order)
-            if existing_line_item
-              # DD: TEMPORARY
-              whey = order.line_items
-                .includes(:variant).references(:variant)
-                .where("spree_variants.sku = '103211'").first
 
-              quantity = whey.present? ? whey.quantity.to_i / 2 : promotion_action_line_item.quantity
+            # DD: find the existing promo line item
+            existing_line_item = find_existing_line_item(promotion_action_line_item, order)
+
+            if existing_line_item
+
+              sku = existing_line_item.variant.sku.upcase.sub("BOGO-","")
+
+              # DD: TEMPORARY
+              paid_line_item = order.line_items
+                .includes(:variant).references(:variant)
+                .where("spree_variants.sku = ?",sku).first
+
+              quantity = if paid_line_item.present?
+                paid_line_item.quantity.to_i / 2
+              else
+                promotion_action_line_item.quantity
+              end
               # DD: END TEMPORARY
+
               existing_line_item.update_attribute(:quantity, quantity)
             else
               create_line_item(promotion_action_line_item, order)
+
             end
+
           end
         end
 
